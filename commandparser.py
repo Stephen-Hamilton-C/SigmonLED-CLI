@@ -11,6 +11,7 @@ class CommandParser:
         self._controller = Controller(device)
 
     def listen(self):
+        self._controller.hello()
         command: str = ""
         while command != "exit":
             command = input(">").lower().strip()
@@ -20,8 +21,8 @@ class CommandParser:
                 color: (int, int, int) = parse_color(split_command)
                 if color is None: return
                 self._controller.color(color)
-            elif command_name == "hello":
-                self._controller.hello()
+            elif command_name == "state":
+                self._controller.display_current_state()
             elif command_name == "exit":
                 break
             else:
