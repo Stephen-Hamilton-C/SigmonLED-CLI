@@ -2,7 +2,7 @@ from simplepyble import Peripheral
 from enum import Enum
 from time import sleep
 
-from arduinostate import ArduinoState
+from arduinostate import ArduinoState, PaletteType, PaletteBlending, PaletteMode
 
 SERVICE: str = "0000ffe0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC: str = "0000ffe1-0000-1000-8000-00805f9b34fb"
@@ -32,7 +32,7 @@ class Controller:
         self.device = device
         device.notify(SERVICE, CHARACTERISTIC, self._incoming_data)
 
-    def _block_until_ready(self):
+    def _block_until_ready(self, hello_update=False):
         while self.command_state != CommandState.READY:
             if self.timer > MAX_TIMEOUT:
                 print(f"Command timed out. No response after {MAX_TIMEOUT} seconds.")
@@ -41,6 +41,10 @@ class Controller:
                 break
             self.timer += DELAY
             sleep(DELAY)
+
+        if not hello_update and self.last_command_success:
+            self.hello()
+            self._block_until_ready(True)
 
     def _reset(self):
         self.command_state = self.state_on_reset
@@ -91,11 +95,44 @@ class Controller:
         self._reset()
 
     # Commands
-    def color(self, rgb: (int, int, int)):
+    def set_color(self, rgb: (int, int, int)):
         self._write(f"color {rgb[0]} {rgb[1]} {rgb[2]}")
         self._block_until_ready()
-        if self.last_command_success:
-            self.arduino_state.color = rgb
+
+    def set_palette_type(self, palette: PaletteType):
+        if palette is None: return
+        palette_int: int = palette.value()
+        self._write(f"palette {palette_int}")
+        self._block_until_ready()
+
+    def set_palette_blending(self, blending: PaletteBlending):
+        if blending is None: return
+        blending_int: int = blending.value()
+        self._write(f"blend {blending_int}")
+        self._block_until_ready()
+
+    def set_brightness(self, brightness: int):
+        brightness = max(0, min(brightness, 255))
+        self._write(f"bright {brightness}")
+        self._block_until_ready()
+
+    def set_palette_delay(self, delay: int):
+        delay = max(0, min(delay, 65535))
+        self._write(f"delay {delay}")
+        self._block_until_ready()
+
+    def set_palette_mode(self, palette_mode: PaletteMode):
+        if palette_mode is None: return
+        palette_mode_int: int = palette_mode.value()
+        self._write(f"pmode {palette_mode_int}")
+        self._block_until_ready()
+
+    def set_palette_stretch(self, stretch: int):
+        stretch = max(0, min(stretch, 255))
+        self._write(f"stretch {stretch}")
+        self._block_until_ready()
+
+    # TODO: Custom palette command
 
     def hello(self):
         self.state_on_reset = CommandState.AWAITING_HELLO
