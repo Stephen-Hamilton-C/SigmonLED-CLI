@@ -38,26 +38,20 @@ class Controller:
             sleep(DELAY)
 
     def _reset(self):
-        self.state = self.state_on_reset
+        # self.state = self.state_on_reset
+        self.state = State.READY
         self.attempts = 0
         self.timer = 0
         self.state_on_reset = State.READY
 
     def _incoming_data(self, data: bytes):
         if not data.isascii(): return
-
-        match self.state:
-            case State.READY:
-                pass
-            case State.AWAITING_RESPONSE, State.AWAITING_HELLO:
-                for char in data.decode("ascii"):
-                    self.response_buffer += char
-                    if char == '\n':
-                        if self.state == State.AWAITING_RESPONSE:
-                            self._confirm(self.response_buffer)
-                        elif self.state == State.AWAITING_HELLO:
-                            print(self.response_buffer)
-                        self.response_buffer = ""
+        if self.state != State.AWAITING_RESPONSE: return
+        for char in data.decode("ascii"):
+            self.response_buffer += char
+            if char == '\n':
+                self._confirm(self.response_buffer)
+                self.response_buffer = ""
 
     def _confirm(self, response: str):
         if response.startswith("verify") and response.strip().endswith(self.last_message):
