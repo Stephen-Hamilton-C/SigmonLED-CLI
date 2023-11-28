@@ -1,5 +1,6 @@
 from simplepyble import Peripheral, Service, Adapter
-from commander import Commander
+from commandparser import CommandParser
+import signal
 
 
 def device_filter(device: Peripheral) -> bool:
@@ -9,7 +10,16 @@ def device_filter(device: Peripheral) -> bool:
             return True
     return False
 
+
+def disconnect(sig=None, frame=None):
+    print("Disconnecting...")
+    device.disconnect()
+    print("Goodbye!")
+
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, disconnect)
+
     if not Adapter.bluetooth_enabled():
         print("Bluetooth is not enabled!")
         exit(1)
@@ -55,9 +65,10 @@ if __name__ == '__main__':
     print("Connected.")
 
     # Pass to command parser
-    commander = Commander(device)
-    commander.listen()
-
-    print("Disconnecting...")
-    device.disconnect()
-    print("Goodbye!")
+    commander = CommandParser(device)
+    try:
+        commander.listen()
+        disconnect()
+    except UnicodeDecodeError:
+        # Likely KeyboardInterrupt, just ignore
+        pass
