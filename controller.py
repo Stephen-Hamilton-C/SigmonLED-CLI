@@ -2,7 +2,10 @@ from simplepyble import Peripheral
 from enum import Enum
 from time import sleep
 
-from arduinostate import ArduinoState, PaletteType, PaletteBlending, PaletteMode
+from arduinostate import ArduinoState
+from enums.paletteblending import PaletteBlending
+from enums.palettemode import PaletteMode
+from enums.palettetype import PaletteType
 
 SERVICE: str = "0000ffe0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC: str = "0000ffe1-0000-1000-8000-00805f9b34fb"
@@ -117,18 +120,15 @@ class Controller:
         self._block_until_ready()
 
     def set_palette_delay(self, delay: int):
-        delay = max(0, min(delay, 65535))
         self._write(f"delay {delay}")
         self._block_until_ready()
 
     def set_palette_mode(self, palette_mode: PaletteMode):
-        if palette_mode is None: return
         palette_mode_int: int = palette_mode.value()
         self._write(f"pmode {palette_mode_int}")
         self._block_until_ready()
 
     def set_palette_stretch(self, stretch: int):
-        stretch = max(0, min(stretch, 255))
         self._write(f"stretch {stretch}")
         self._block_until_ready()
 

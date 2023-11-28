@@ -1,9 +1,17 @@
 from simplepyble import Peripheral
 from re import split
 
-from arduinostate import PaletteType
 from controller import Controller
+from enums.paletteblending import PaletteBlending
+from enums.palettemode import PaletteMode
+from enums.palettetype import PaletteType
+from parsers.brightness import parse_brightness
 from parsers.color import parse_color
+from parsers.paletteblending import parse_palette_blending
+from parsers.palettedelay import parse_palette_delay
+from parsers.palettemode import parse_palette_mode
+from parsers.palettestretch import parse_palette_stretch
+from parsers.palettetype import parse_palette_type
 
 
 class CommandParser:
@@ -18,7 +26,9 @@ class CommandParser:
         self._controller.set_color(color)
 
     def brightness_command(self, split_command: list[str]):
-        pass
+        brightness: int = parse_brightness(split_command)
+        if brightness is None: return
+        self._controller.set_brightness(brightness)
 
     def palette_command(self, split_command: list[str]):
         subcommand: str = split_command[1]
@@ -36,27 +46,29 @@ class CommandParser:
             print("Unknown palette subcommand.")
 
     def palette_type_command(self, split_command: list[str]):
-        palette: PaletteType
-        try:
-            palette_num: int = int(split_command[2])
-            palette = PaletteType(palette_num)
-            return
-        except ValueError:
-            # Not an integer input, try string instead
-            palette = PaletteType[split_command[2].upper()]
+        palette: PaletteType = parse_palette_type(split_command)
+        if palette is None: return
         self._controller.set_palette_type(palette)
 
     def palette_blending_command(self, split_command: list[str]):
-        pass
+        palette_blending: PaletteBlending = parse_palette_blending(split_command)
+        if palette_blending is None: return
+        self._controller.set_palette_blending(palette_blending)
 
     def palette_delay_command(self, split_command: list[str]):
-        pass
+        palette_delay: int = parse_palette_delay(split_command)
+        if palette_delay is None: return
+        self._controller.set_palette_delay(palette_delay)
 
     def palette_mode_command(self, split_command: list[str]):
-        pass
+        palette_mode: PaletteMode = parse_palette_mode(split_command)
+        if palette_mode is None: return
+        self._controller.set_palette_mode(palette_mode)
 
     def palette_stretch_command(self, split_command: list[str]):
-        pass
+        palette_stretch: int = parse_palette_stretch(split_command)
+        if palette_stretch is None: return
+        self._controller.set_palette_stretch(palette_stretch)
 
     def state_command(self):
         self._controller.display_current_state()

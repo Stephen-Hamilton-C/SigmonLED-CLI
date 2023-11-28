@@ -1,33 +1,8 @@
-from enum import Enum
-
+from enums.mode import Mode
+from enums.paletteblending import PaletteBlending
+from enums.palettemode import PaletteMode
+from enums.palettetype import PaletteType
 from version import Version
-
-
-class Mode(Enum):
-    COLOR = 0
-    PALETTE = 1
-
-
-class PaletteType(Enum):
-    RAINBOW = 0
-    RAINBOW_STRIPE = 1
-    PARTY = 2
-    OCEAN = 3
-    LAVA = 4
-    FOREST = 5
-    CUSTOM = 6
-
-
-class PaletteBlending(Enum):
-    NOBLEND = 0
-    LINEARBLEND = 1
-    LINEARBLEND_NOWRAP = 2
-
-
-class PaletteMode(Enum):
-    STATIC = 0
-    SCROLLING = 1
-    SOLID = 2
 
 
 class ArduinoState:
