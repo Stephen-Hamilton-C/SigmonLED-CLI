@@ -26,6 +26,7 @@ class Controller:
     device: Peripheral
     state_on_reset: CommandState = CommandState.READY
     arduino_state: ArduinoState
+    last_command_success: bool = False
 
     def __init__(self, device: Peripheral):
         self.device = device
@@ -35,6 +36,7 @@ class Controller:
         while self.command_state != CommandState.READY:
             if self.timer > MAX_TIMEOUT:
                 print(f"Command timed out. No response after {MAX_TIMEOUT} seconds.")
+                self.last_command_success = False
                 self._reset()
                 break
             self.timer += DELAY
@@ -53,12 +55,12 @@ class Controller:
             self.response_buffer += char
             if char == '\n':
                 if self.command_state == CommandState.AWAITING_RESPONSE:
-                    self._confirm(self.response_buffer)
+                    self._confirm_response(self.response_buffer)
                 elif self.command_state == CommandState.AWAITING_HELLO:
                     self._hello_response(self.response_buffer)
                 self.response_buffer = ""
 
-    def _confirm(self, response: str):
+    def _confirm_response(self, response: str):
         if response.startswith("verify") and response.strip().endswith(self.last_message):
             if response.strip().endswith(self.last_message):
                 self._write("confirm")
@@ -67,12 +69,14 @@ class Controller:
                 self._write(self.last_message)
         elif response.startswith("confirmed"):
             self._reset()
+            self.last_command_success = True
         elif response.startswith("disregard"):
             self._write(self.last_message)
 
     def _write(self, msg: str):
         if self.attempts > MAX_ATTEMPTS:
             self.state_on_reset = CommandState.READY
+            self.last_command_success = False
             print(f"Failed to send command! Gave up after {self.attempts} times.")
             self._reset()
             return
@@ -88,9 +92,10 @@ class Controller:
 
     # Commands
     def color(self, rgb: (int, int, int)):
-        # TODO: Update state if successful
         self._write(f"color {rgb[0]} {rgb[1]} {rgb[2]}")
         self._block_until_ready()
+        if self.last_command_success:
+            self.arduino_state.color = rgb
 
     def hello(self):
         self.state_on_reset = CommandState.AWAITING_HELLO
