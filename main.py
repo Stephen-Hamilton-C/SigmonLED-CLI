@@ -1,14 +1,21 @@
 from simplepyble import Peripheral, Service, Adapter
 from commandparser import CommandParser
+from colorama import init
 import signal
 
+init(autoreset=True)
+
 commander: CommandParser
+listening_to_commands: bool = False
 
 
 def device_filter(device: Peripheral) -> bool:
+    # print(f"Found device \"{device.identifier()}\" -- {device.address()}")
     service: Service
     for service in device.services():
-        if service.uuid() == "0000ffe0-0000-1000-8000-00805f9b34fb":
+        # print(f"  Service: {service.uuid()}")
+        # if service.uuid() == "0000ffe0-0000-1000-8000-00805f9b34fb":
+        if service.uuid().endswith("00805f9b34fb"):
             return True
     return False
 
@@ -21,6 +28,9 @@ def disconnect(sig=None, frame=None):
 
 
 def on_disconnected():
+    global listening_to_commands
+    if not listening_to_commands: return
+
     print()
     print("Lost connection to device. Press enter to exit.")
     exit(1)
@@ -41,7 +51,12 @@ def select_device(device_list: list[Peripheral]) -> Peripheral:
             print(f"[{i}]: \"{device.identifier()}\" -- {device.address()}")
 
         # Get decision from user
-        choice = int(input("Select a device to connect to: "))
+        choice: int
+        try:
+            choice = int(input("Select a device to connect to: "))
+        except ValueError:
+            choice = -1
+
         while choice < 0 or choice >= len(device_list):
             try:
                 choice = int(input(f"Invalid selection. Selection must be between 0 - {len(device_list) - 1}: "))
@@ -98,7 +113,9 @@ if __name__ == '__main__':
     # Pass to command parser
     commander = CommandParser(device)
     try:
+        listening_to_commands = True
         commander.listen()
+        listening_to_commands = False
         disconnect()
     except UnicodeDecodeError:
         # Likely KeyboardInterrupt, just ignore

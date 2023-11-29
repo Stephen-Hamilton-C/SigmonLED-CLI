@@ -6,6 +6,7 @@ from arduinostate import ArduinoState
 from enums.paletteblending import PaletteBlending
 from enums.palettemode import PaletteMode
 from enums.palettetype import PaletteType
+from custom_palette.custompalette import CustomPalette
 
 SERVICE: str = "0000ffe0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC: str = "0000ffe1-0000-1000-8000-00805f9b34fb"
@@ -89,7 +90,13 @@ class Controller:
         self.attempts += 1
         self.last_message = msg
         self.command_state = CommandState.AWAITING_RESPONSE
-        self.device.write_command(SERVICE, CHARACTERISTIC, str.encode(f"{self.last_message}\n"))
+        buffer = msg[:16]
+        msg = msg[16:]
+        while len(buffer) > 0:
+            self.device.write_command(SERVICE, CHARACTERISTIC, str.encode(buffer))
+            buffer = msg[:16]
+            msg = msg[16:]
+        self.device.write_command(SERVICE, CHARACTERISTIC, str.encode("\n"))
 
     def _hello_response(self, response: str):
         self._reset()
@@ -130,7 +137,17 @@ class Controller:
         self._write(f"stretch {stretch}")
         self._block_until_ready()
 
-    # TODO: Custom palette command
+    def send_palette(self, custom_palette: CustomPalette):
+        palette_commands: list[str] = custom_palette.build_commands()
+        for (i, command) in enumerate(palette_commands):
+            percentage: int = round((float(i) / len(palette_commands)) * 100)
+            print(f"{percentage}%...", end="")
+
+            self._write(command)
+            self._block_until_ready(i < len(palette_commands) - 1)
+            if not self.last_command_success: break
+
+        self.set_palette_type(PaletteType.CUSTOM)
 
     def hello(self):
         self.state_on_reset = CommandState.AWAITING_HELLO

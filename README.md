@@ -7,6 +7,8 @@ Still early in development, completely unfinished.
 To setup for development, first run
 ```shell
 pip install simplepyble
+pip install colour
+pip install appdirs
 ```
 
 ### Linux

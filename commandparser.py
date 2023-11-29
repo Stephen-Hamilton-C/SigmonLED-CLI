@@ -2,6 +2,8 @@ from simplepyble import Peripheral
 from re import split
 
 from controller import Controller
+from custom_palette.custompalette import CustomPalette
+from custom_palette.palettemanager import PaletteManager
 from enums.paletteblending import PaletteBlending
 from enums.palettemode import PaletteMode
 from enums.palettetype import PaletteType
@@ -16,6 +18,7 @@ from parsers.palettetype import parse_palette_type
 
 class CommandParser:
     _controller: Controller
+    _palette_manager: PaletteManager = PaletteManager()
 
     def __init__(self, device: Peripheral):
         self._controller = Controller(device)
@@ -42,6 +45,10 @@ class CommandParser:
             self.palette_mode_command(split_command)
         elif subcommand == "stretch":
             self.palette_stretch_command(split_command)
+        elif subcommand == "create":
+            self.palette_create_command()
+        elif subcommand == "send":
+            self.palette_send_command()
         else:
             print("Unknown palette subcommand.")
 
@@ -69,6 +76,16 @@ class CommandParser:
         palette_stretch: int = parse_palette_stretch(split_command)
         if palette_stretch is None: return
         self._controller.set_palette_stretch(palette_stretch)
+
+    def palette_create_command(self):
+        self._palette_manager.palette_creator()
+
+    def palette_send_command(self):
+        palette: CustomPalette = self._palette_manager.select_palette()
+        if palette is None: return
+        print(f"Sending palette {palette.name}...")
+        self._controller.send_palette(palette)
+        print(f"Palette sent!")
 
     def state_command(self):
         self._controller.display_current_state()
