@@ -38,7 +38,6 @@ class Controller:
     def _block_until_ready(self, hello_update=False):
         while self.command_state != CommandState.READY:
             if self.timer > MAX_TIMEOUT:
-                print(f"Command timed out. No response after {MAX_TIMEOUT} seconds.")
                 self.last_command_success = False
                 self._reset()
                 break
@@ -47,7 +46,6 @@ class Controller:
 
         if not hello_update and self.last_command_success:
             self.hello()
-            self._block_until_ready(True)
 
     def _reset(self):
         self.command_state = self.state_on_reset
@@ -94,8 +92,8 @@ class Controller:
         self.device.write_command(SERVICE, CHARACTERISTIC, str.encode(f"{self.last_message}\n"))
 
     def _hello_response(self, response: str):
-        self.arduino_state = ArduinoState(response)
         self._reset()
+        self.arduino_state = ArduinoState(response)
 
     # Commands
     def set_color(self, rgb: (int, int, int)):
@@ -104,13 +102,13 @@ class Controller:
 
     def set_palette_type(self, palette: PaletteType):
         if palette is None: return
-        palette_int: int = palette.value()
+        palette_int: int = palette.value
         self._write(f"palette {palette_int}")
         self._block_until_ready()
 
     def set_palette_blending(self, blending: PaletteBlending):
         if blending is None: return
-        blending_int: int = blending.value()
+        blending_int: int = blending.value
         self._write(f"blend {blending_int}")
         self._block_until_ready()
 
@@ -124,7 +122,7 @@ class Controller:
         self._block_until_ready()
 
     def set_palette_mode(self, palette_mode: PaletteMode):
-        palette_mode_int: int = palette_mode.value()
+        palette_mode_int: int = palette_mode.value
         self._write(f"pmode {palette_mode_int}")
         self._block_until_ready()
 
@@ -137,7 +135,7 @@ class Controller:
     def hello(self):
         self.state_on_reset = CommandState.AWAITING_HELLO
         self._write(f"hello")
-        self._block_until_ready()
+        self._block_until_ready(True)
 
     def display_current_state(self):
         print(str(self.arduino_state))

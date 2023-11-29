@@ -12,6 +12,7 @@ def device_filter(device: Peripheral) -> bool:
 
 
 def disconnect(sig=None, frame=None):
+    print("exit")
     print("Disconnecting...")
     device.disconnect()
     print("Goodbye!")
