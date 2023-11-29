@@ -239,5 +239,6 @@ fabric.properties
 
 # Nuitka build files
 *.build
+*.dist
 main.cmd
 main.exe
