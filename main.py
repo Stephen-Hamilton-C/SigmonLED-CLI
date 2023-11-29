@@ -1,9 +1,6 @@
 from simplepyble import Peripheral, Service, Adapter
 from commandparser import CommandParser
-from colorama import init
 import signal
-
-init(autoreset=True)
 
 commander: CommandParser
 listening_to_commands: bool = False
