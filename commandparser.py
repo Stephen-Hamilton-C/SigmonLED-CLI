@@ -76,7 +76,7 @@ class CommandParser:
     def listen(self):
         self._controller.hello()
         command: str = ""
-        while command != "exit":
+        while command != "exit" and self._controller.device.is_connected():
             command = input(">").lower().strip()
             split_command: list[str] = split(r"\s+", command)
             command_name = split_command[0]
@@ -90,5 +90,5 @@ class CommandParser:
                 self.brightness_command(split_command)
             elif command_name == "exit":
                 break
-            else:
+            elif self._controller.device.is_connected():
                 print("Unknown command.")
