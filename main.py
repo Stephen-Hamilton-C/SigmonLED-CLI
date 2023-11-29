@@ -26,11 +26,11 @@ def on_disconnected():
     exit(1)
 
 
-def select_device(device_list: list[Peripheral]) -> Peripheral | None:
+def select_device(device_list: list[Peripheral]) -> Peripheral:
     # Exit if no devices found
     if len(device_list) == 0:
         print("No devices to connect to!")
-        return None
+        exit(1)
 
     choice: int = -1
     if len(device_list) > 1:
@@ -67,7 +67,6 @@ if __name__ == '__main__':
 
     adapter: Adapter = adapters[0]
     existing_devices: list[Peripheral] = list(filter(device_filter, adapter.get_paired_peripherals()))
-    print(f"Paired: {adapter.get_paired_peripherals()}")
 
     device: Peripheral
     if len(existing_devices) > 0:
@@ -84,14 +83,13 @@ if __name__ == '__main__':
 
         device = select_device(sigmonled_devices)
 
-    if device is None: exit(1)
-
     device.set_callback_on_disconnected(on_disconnected)
 
     # Connect to selected device
     print(f"Connecting to \"{device.identifier()}\" -- {device.address()}...")
-    device.connect()
-    if not device.is_connected():
+    try:
+        device.connect()
+    except RuntimeError:
         print("Failed to connect to device!")
         exit(1)
 
