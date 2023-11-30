@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nuitka main.py
+./venv/bin/python3 -m nuitka main.py --standalone --follow-imports --output-filename=sigmonled
