@@ -238,7 +238,9 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # Nuitka build files
+*.dist
 *.build
 *.dist
 main.cmd
 main.exe
+main.bin
